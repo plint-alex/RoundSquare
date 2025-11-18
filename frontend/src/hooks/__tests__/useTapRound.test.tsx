@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { renderHook, waitFor } from '@testing-library/react'
 import { useTapRound } from '../useTapRound'
 import * as roundsApi from '@/api/rounds'
+import { createTestWrapper } from '@/test-utils'
 import type { TapResultDto } from '@/api/types'
 
 // Mock the API module
@@ -26,7 +27,9 @@ describe('useTapRound', () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
 
-    const { result } = renderHook(() => useTapRound('round-id', 0, onSuccess, onError))
+    const { result } = renderHook(() => useTapRound('round-id', 0, onSuccess, onError), {
+      wrapper: createTestWrapper(),
+    })
 
     expect(result.current.isTapping).toBe(false)
     expect(result.current.localTapCount).toBe(0)
@@ -53,7 +56,9 @@ describe('useTapRound', () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
 
-    const { result } = renderHook(() => useTapRound('round-id', 0, onSuccess, onError))
+    const { result } = renderHook(() => useTapRound('round-id', 0, onSuccess, onError), {
+      wrapper: createTestWrapper(),
+    })
 
     result.current.tap()
 
@@ -74,7 +79,9 @@ describe('useTapRound', () => {
     const mockTapRound = vi.mocked(roundsApi.tapRound)
     mockTapRound.mockReturnValueOnce(promise)
 
-    const { result } = renderHook(() => useTapRound('round-id', 0))
+    const { result } = renderHook(() => useTapRound('round-id', 0), {
+      wrapper: createTestWrapper(),
+    })
 
     result.current.tap()
 
@@ -98,7 +105,9 @@ describe('useTapRound', () => {
     const onSuccess = vi.fn()
     const onError = vi.fn()
 
-    const { result } = renderHook(() => useTapRound('round-id', 0, onSuccess, onError))
+    const { result } = renderHook(() => useTapRound('round-id', 0, onSuccess, onError), {
+      wrapper: createTestWrapper(),
+    })
 
     result.current.tap()
 
@@ -114,7 +123,9 @@ describe('useTapRound', () => {
     error.message = undefined
     mockTapRound.mockRejectedValueOnce(error)
 
-    const { result } = renderHook(() => useTapRound('round-id', 0))
+    const { result } = renderHook(() => useTapRound('round-id', 0), {
+      wrapper: createTestWrapper(),
+    })
 
     result.current.tap()
 

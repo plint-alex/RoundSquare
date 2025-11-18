@@ -1,14 +1,42 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Mock logger to prevent config errors during module initialization
+vi.mock('@/shared/logger.js', () => ({
+  logger: {
+    fatal: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    info: vi.fn(),
+    debug: vi.fn(),
+    trace: vi.fn(),
+    child: vi.fn(() => ({
+      fatal: vi.fn(),
+      error: vi.fn(),
+      warn: vi.fn(),
+      info: vi.fn(),
+      debug: vi.fn(),
+      trace: vi.fn(),
+      child: vi.fn(),
+    })),
+  },
+}));
+
 import { RoundStatusRefreshService } from '@/app/rounds/round-status-refresh.service.js';
 import { RoundRepository } from '@/domain/repositories/round.repository.js';
 import { Round } from '@/domain/rounds/round.entity.js';
 import { RoundStatus } from '@/domain/rounds/round-status.enum.js';
+import { resetConfig } from '@/shared/config.js';
 
 describe('RoundStatusRefreshService', () => {
   let refreshService: RoundStatusRefreshService;
   let mockRoundRepository: RoundRepository;
 
   beforeEach(() => {
+    process.env.ROUND_DURATION = '60';
+    process.env.COOLDOWN_DURATION = '30';
+    process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+    process.env.AUTH_SECRET = 'test-secret-key-minimum-32-characters-long';
+    resetConfig();
     mockRoundRepository = {
       findById: vi.fn(),
       findAll: vi.fn(),

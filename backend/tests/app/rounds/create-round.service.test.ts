@@ -12,6 +12,8 @@ describe('CreateRoundService', () => {
   beforeEach(() => {
     process.env.ROUND_DURATION = '60';
     process.env.COOLDOWN_DURATION = '30';
+    process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+    process.env.AUTH_SECRET = 'test-secret-key-minimum-32-characters-long';
     resetConfig();
 
     mockRoundRepository = {

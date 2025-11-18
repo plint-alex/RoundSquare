@@ -1,17 +1,17 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { BrowserRouter } from 'react-router-dom'
-import { RoundDetailPage } from '../RoundDetailPage'
+import { RoundDetailPage } from '@/pages/RoundDetailPage'
 import { useAuthStore } from '@/store/authStore'
-import * as roundDetailHook from '@/hooks/useRoundDetail'
+import * as roundDetailQueryHook from '@/hooks/useRoundDetailQuery'
 import * as roundTimerHook from '@/hooks/useRoundTimer'
 import * as tapRoundHook from '@/hooks/useTapRound'
+import { createTestWrapper } from '@/test-utils'
 import type { RoundDetailDto } from '@/api/types'
 
 // Mock hooks
-vi.mock('@/hooks/useRoundDetail', () => ({
-  useRoundDetail: vi.fn(),
+vi.mock('@/hooks/useRoundDetailQuery', () => ({
+  useRoundDetailQuery: vi.fn(),
 }))
 
 vi.mock('@/hooks/useRoundTimer', () => ({
@@ -70,7 +70,6 @@ describe('RoundDetailPage', () => {
     vi.clearAllMocks()
     useAuthStore.setState({ user: null, isAuthenticated: false })
     vi.clearAllTimers()
-    vi.useFakeTimers()
   })
 
   afterEach(() => {
@@ -78,20 +77,15 @@ describe('RoundDetailPage', () => {
   })
 
   const renderRoundDetailPage = () => {
-    return render(
-      <BrowserRouter>
-        <RoundDetailPage />
-      </BrowserRouter>
-    )
+    return render(<RoundDetailPage />, { wrapper: createTestWrapper() })
   }
 
   it('should render loading state', () => {
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: null,
-      loading: true,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: undefined,
+      isLoading: true,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -101,9 +95,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 0,
+      localScore: 0,
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -112,12 +107,11 @@ describe('RoundDetailPage', () => {
   })
 
   it('should render error state when round not found', () => {
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: null,
-      loading: false,
-      error: 'Round not found',
-      refresh: vi.fn(),
-    })
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: undefined,
+      isLoading: false,
+      error: { message: 'Round not found' } as Error,
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -127,9 +121,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 0,
+      localScore: 0,
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -144,12 +139,11 @@ describe('RoundDetailPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: mockRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: mockRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -159,9 +153,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 5,
+      localScore: 10,
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -178,12 +173,11 @@ describe('RoundDetailPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: mockRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: mockRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -193,9 +187,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 5,
+      localScore: 0, // Никита always shows 0
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -204,12 +199,11 @@ describe('RoundDetailPage', () => {
   })
 
   it('should disable goose when round is not ACTIVE', () => {
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: mockRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: mockRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: 60000,
@@ -219,9 +213,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 0,
+      localScore: 0,
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -251,12 +246,11 @@ describe('RoundDetailPage', () => {
       },
     }
 
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: completedRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: completedRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -266,9 +260,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 10,
+      localScore: 100,
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -297,12 +292,11 @@ describe('RoundDetailPage', () => {
       },
     }
 
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: completedRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: completedRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -312,15 +306,18 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 10,
+      localScore: 0,
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
 
-    const statsLines = screen.getAllByText(/My Points/)
     // Should show 0 for Никита in stats
+    const myPointsLabels = screen.getAllByText(/My Points/)
+    expect(myPointsLabels.length).toBeGreaterThan(0)
+    // The component should show 0 for Никита role
     expect(screen.getByText('0')).toBeInTheDocument()
   })
 
@@ -333,12 +330,11 @@ describe('RoundDetailPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: mockRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: mockRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -348,9 +344,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: mockTap,
+      localTapCount: 5,
+      localScore: 10,
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -362,12 +359,11 @@ describe('RoundDetailPage', () => {
   })
 
   it('should disable goose when isTapping', () => {
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: mockRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: mockRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -377,9 +373,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 5,
+      localScore: 10,
       isTapping: true,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -388,12 +385,11 @@ describe('RoundDetailPage', () => {
   })
 
   it('should display tap error', () => {
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: mockRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: mockRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -403,9 +399,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 5,
+      localScore: 10,
       isTapping: false,
       error: 'Round is not active',
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -416,12 +413,11 @@ describe('RoundDetailPage', () => {
   it('should navigate to rounds list on back button click', async () => {
     const user = userEvent.setup({ delay: null })
 
-    vi.mocked(roundDetailHook.useRoundDetail).mockReturnValue({
-      round: mockRound,
-      loading: false,
+    vi.mocked(roundDetailQueryHook.useRoundDetailQuery).mockReturnValue({
+      data: mockRound,
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+    } as any)
 
     vi.mocked(roundTimerHook.useRoundTimer).mockReturnValue({
       timeUntilStart: null,
@@ -431,9 +427,10 @@ describe('RoundDetailPage', () => {
 
     vi.mocked(tapRoundHook.useTapRound).mockReturnValue({
       tap: vi.fn(),
+      localTapCount: 5,
+      localScore: 10,
       isTapping: false,
       error: null,
-      lastResult: null,
     })
 
     renderRoundDetailPage()
@@ -444,5 +441,3 @@ describe('RoundDetailPage', () => {
     expect(mockNavigate).toHaveBeenCalledWith('/rounds')
   })
 })
-
-

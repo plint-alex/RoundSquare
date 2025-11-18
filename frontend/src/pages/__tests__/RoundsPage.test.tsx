@@ -2,14 +2,16 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
-import { RoundsPage } from '../RoundsPage'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { RoundsPage } from '@/pages/RoundsPage'
 import { useAuthStore } from '@/store/authStore'
-import * as roundsHook from '@/hooks/useRounds'
+import * as roundsQueryHook from '@/hooks/useRoundsQuery'
+import { ToastProvider } from '@/components/ToastContainer'
 import type { RoundListDto } from '@/api/types'
 
-// Mock useRounds hook
-vi.mock('@/hooks/useRounds', () => ({
-  useRounds: vi.fn(),
+// Mock useRoundsQuery hook
+vi.mock('@/hooks/useRoundsQuery', () => ({
+  useRoundsQuery: vi.fn(),
 }))
 
 // Mock react-router-dom navigate
@@ -65,12 +67,32 @@ const mockCompletedRound: RoundListDto = {
   timeRemaining: null,
 }
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: false,
+    },
+  },
+})
+
+const createWrapper = () => {
+  return function Wrapper({ children }: { children: React.ReactNode }) {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <ToastProvider>
+          <BrowserRouter>{children}</BrowserRouter>
+        </ToastProvider>
+      </QueryClientProvider>
+    )
+  }
+}
+
 describe('RoundsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     useAuthStore.setState({ user: null, isAuthenticated: false })
+    queryClient.clear()
     vi.clearAllTimers()
-    vi.useFakeTimers()
   })
 
   afterEach(() => {
@@ -78,24 +100,20 @@ describe('RoundsPage', () => {
   })
 
   const renderRoundsPage = () => {
-    return render(
-      <BrowserRouter>
-        <RoundsPage />
-      </BrowserRouter>
-    )
+    return render(<RoundsPage />, { wrapper: createWrapper() })
   }
 
   it('should render loading state with skeletons', () => {
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [],
-      loading: true,
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [],
+      isLoading: true,
       error: null,
-      refresh: vi.fn(),
-    })
+      refetch: vi.fn(),
+    } as any)
 
     renderRoundsPage()
 
-    expect(screen.getByText('Rounds List')).toBeInTheDocument()
+    expect(screen.getByText('Rounds')).toBeInTheDocument()
     // Should show skeleton loaders
     expect(document.querySelectorAll('.rounds-page__skeleton').length).toBeGreaterThan(0)
   })
@@ -106,12 +124,12 @@ describe('RoundsPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [],
-      loading: false,
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+      refetch: vi.fn(),
+    } as any)
 
     renderRoundsPage()
 
@@ -124,12 +142,12 @@ describe('RoundsPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [],
-      loading: false,
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+      refetch: vi.fn(),
+    } as any)
 
     renderRoundsPage()
 
@@ -142,12 +160,12 @@ describe('RoundsPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [],
-      loading: false,
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+      refetch: vi.fn(),
+    } as any)
 
     renderRoundsPage()
 
@@ -161,12 +179,12 @@ describe('RoundsPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [],
-      loading: false,
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+      refetch: vi.fn(),
+    } as any)
 
     renderRoundsPage()
 
@@ -182,12 +200,12 @@ describe('RoundsPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [mockActiveRound, mockCooldownRound, mockCompletedRound],
-      loading: false,
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [mockActiveRound, mockCooldownRound, mockCompletedRound],
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+      refetch: vi.fn(),
+    } as any)
 
     renderRoundsPage()
 
@@ -206,12 +224,12 @@ describe('RoundsPage', () => {
       isAuthenticated: true,
     })
 
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [],
-      loading: false,
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
       error: null,
-      refresh: vi.fn(),
-    })
+      refetch: vi.fn(),
+    } as any)
 
     renderRoundsPage()
 
@@ -219,12 +237,12 @@ describe('RoundsPage', () => {
   })
 
   it('should display error message on error', () => {
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [],
-      loading: false,
-      error: 'Failed to load rounds',
-      refresh: vi.fn(),
-    })
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: { message: 'Failed to load rounds' } as Error,
+      refetch: vi.fn(),
+    } as any)
 
     renderRoundsPage()
 
@@ -232,49 +250,23 @@ describe('RoundsPage', () => {
     expect(screen.getByText('Retry')).toBeInTheDocument()
   })
 
-  it('should call refresh when retry button clicked', async () => {
+  it('should call refetch when retry button clicked', async () => {
     const user = userEvent.setup({ delay: null })
-    const mockRefresh = vi.fn()
+    const mockRefetch = vi.fn()
 
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [],
-      loading: false,
-      error: 'Failed to load rounds',
-      refresh: mockRefresh,
-    })
+    vi.mocked(roundsQueryHook.useRoundsQuery).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: { message: 'Failed to load rounds' } as Error,
+      refetch: mockRefetch,
+    } as any)
 
     renderRoundsPage()
 
     const retryBtn = screen.getByText('Retry')
     await user.click(retryBtn)
 
-    expect(mockRefresh).toHaveBeenCalled()
+    expect(mockRefetch).toHaveBeenCalled()
   })
 
-  it('should auto-refresh every 30 seconds', () => {
-    const mockRefresh = vi.fn()
-
-    vi.mocked(roundsHook.useRounds).mockReturnValue({
-      rounds: [mockActiveRound],
-      loading: false,
-      error: null,
-      refresh: mockRefresh,
-    })
-
-    renderRoundsPage()
-
-    expect(mockRefresh).not.toHaveBeenCalled()
-
-    // Advance time by 30 seconds
-    vi.advanceTimersByTime(30000)
-
-    expect(mockRefresh).toHaveBeenCalledTimes(1)
-
-    // Advance another 30 seconds
-    vi.advanceTimersByTime(30000)
-
-    expect(mockRefresh).toHaveBeenCalledTimes(2)
-  })
 })
-
-

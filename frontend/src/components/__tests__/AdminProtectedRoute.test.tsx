@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
-import { AdminProtectedRoute } from '../AdminProtectedRoute'
+import { AdminProtectedRoute } from '@/components/AdminProtectedRoute'
 import { useAuthStore } from '@/store/authStore'
 
 describe('AdminProtectedRoute', () => {

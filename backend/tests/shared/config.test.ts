@@ -15,6 +15,7 @@ describe('Config', () => {
     process.env.ROUND_DURATION = '60';
     process.env.COOLDOWN_DURATION = '30';
     process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+    process.env.AUTH_SECRET = 'test-secret-key-minimum-32-characters-long';
 
     const config = loadConfig();
 
@@ -31,6 +32,7 @@ describe('Config', () => {
     process.env.ROUND_DURATION = '60';
     process.env.COOLDOWN_DURATION = '30';
     process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+    process.env.AUTH_SECRET = 'test-secret-key-minimum-32-characters-long';
 
     const config = loadConfig();
 
@@ -42,6 +44,7 @@ describe('Config', () => {
     process.env.NODE_ENV = 'development';
     process.env.COOLDOWN_DURATION = '30';
     process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+    process.env.AUTH_SECRET = 'test-secret-key-minimum-32-characters-long';
 
     expect(() => loadConfig()).toThrow('Invalid environment configuration');
   });
@@ -52,6 +55,7 @@ describe('Config', () => {
     process.env.ROUND_DURATION = '60';
     process.env.COOLDOWN_DURATION = '30';
     process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+    process.env.AUTH_SECRET = 'test-secret-key-minimum-32-characters-long';
 
     expect(() => loadConfig()).toThrow('Invalid environment configuration');
   });
@@ -62,6 +66,7 @@ describe('Config', () => {
     process.env.ROUND_DURATION = '120';
     process.env.COOLDOWN_DURATION = '45';
     process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
+    process.env.AUTH_SECRET = 'test-secret-key-minimum-32-characters-long';
 
     const config = loadConfig();
 

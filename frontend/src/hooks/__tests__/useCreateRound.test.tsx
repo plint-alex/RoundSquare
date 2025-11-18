@@ -123,18 +123,28 @@ describe('useCreateRound', () => {
   })
 
   it('shows loading state during creation', async () => {
-    vi.mocked(roundsApi.createRound).mockImplementation(
-      () => new Promise((resolve) => setTimeout(() => resolve({} as any), 100))
-    )
+    let resolvePromise: (value: any) => void
+    const promise = new Promise((resolve) => {
+      resolvePromise = resolve
+    })
+    vi.mocked(roundsApi.createRound).mockReturnValue(promise as any)
 
     const { result } = renderHook(() => useCreateRound(), {
       wrapper: createWrapper(),
     })
 
-    result.current.createRound()
+    // Trigger mutation
+    result.current.createRound({})
 
-    expect(result.current.isCreating).toBe(true)
+    // Check loading state is set
+    await waitFor(() => {
+      expect(result.current.isCreating).toBe(true)
+    })
 
+    // Resolve the promise
+    resolvePromise!({ id: 'new-round-id' } as any)
+
+    // Wait for loading to complete
     await waitFor(() => {
       expect(result.current.isCreating).toBe(false)
     })

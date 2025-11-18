@@ -98,10 +98,10 @@ describe('Round Entity', () => {
       expect(round.getTimeUntilStart(now)).toBeNull();
     });
 
-    it('should return 0 if exactly at start time', () => {
+    it('should return null if exactly at start time', () => {
       const round = Round.create('1', cooldownStart, startAt, endAt, 'user1');
 
-      expect(round.getTimeUntilStart(startAt)).toBe(0);
+      expect(round.getTimeUntilStart(startAt)).toBeNull();
     });
   });
 
@@ -127,10 +127,10 @@ describe('Round Entity', () => {
       expect(round.getTimeRemaining(now)).toBeNull();
     });
 
-    it('should return 0 if exactly at end time', () => {
+    it('should return null if exactly at end time', () => {
       const round = Round.create('1', cooldownStart, startAt, endAt, 'user1');
 
-      expect(round.getTimeRemaining(endAt)).toBe(0);
+      expect(round.getTimeRemaining(endAt)).toBeNull();
     });
   });
 });

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { BrowserRouter } from 'react-router-dom'
-import { LoginForm } from '../LoginForm'
+import { LoginForm } from '@/components/LoginForm'
 import { useAuthStore } from '@/store/authStore'
 import * as authApi from '@/api/auth'
 
@@ -151,8 +151,8 @@ describe('LoginForm', () => {
 
     // Button should show loading state
     expect(submitButton).toHaveAttribute('aria-busy', 'true')
-    expect(submitButton).toHaveTextContent('Logging in...')
     expect(submitButton).toBeDisabled()
+    // Button text remains "Log in" but becomes transparent with spinner overlay
 
     // Resolve the promise
     resolveLogin!({

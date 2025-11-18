@@ -33,12 +33,16 @@ describe('Round DTO Mappers', () => {
   describe('mapRoundToDetailDto', () => {
     const createTestRound = (): Round => {
       const now = new Date();
+      // Create round with timestamps that compute to ACTIVE status
+      const cooldownStart = new Date(now.getTime() - 30000); // 30s ago
+      const startAt = new Date(now.getTime() - 10000); // Started 10s ago
+      const endAt = new Date(now.getTime() + 50000); // Ends in 50s
       return new Round(
         'round-id',
         RoundStatus.ACTIVE,
-        now,
-        new Date(now.getTime() + 30000),
-        new Date(now.getTime() + 90000),
+        cooldownStart,
+        startAt,
+        endAt,
         100,
         'creator-id',
         now,

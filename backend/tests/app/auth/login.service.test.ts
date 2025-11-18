@@ -6,6 +6,11 @@ import { UserRole } from '@/domain/users/role.enum.js';
 import { InvalidCredentialsError } from '@/shared/errors/auth.errors.js';
 import { resetConfig } from '@/shared/config.js';
 
+vi.mock('@/domain/users/password.service.js', () => ({
+  hashPassword: vi.fn(),
+  verifyPassword: vi.fn(),
+}));
+
 describe('LoginService', () => {
   let loginService: LoginService;
   let mockUserRepository: UserRepository;
@@ -13,6 +18,9 @@ describe('LoginService', () => {
   beforeEach(() => {
     process.env.AUTH_SECRET = 'test-secret-key-minimum-32-characters-long';
     process.env.AUTH_COOKIE_MAX_AGE = '3600000';
+    process.env.ROUND_DURATION = '60';
+    process.env.COOLDOWN_DURATION = '30';
+    process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db';
     resetConfig();
 
     mockUserRepository = {
@@ -74,9 +82,9 @@ describe('LoginService', () => {
 
     vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(existingUser);
 
-    // Mock bcrypt to return true for password verification
-    const bcrypt = await import('bcrypt');
-    vi.spyOn(bcrypt, 'compare').mockResolvedValue(true as never);
+    // Mock verifyPassword to return true
+    const { verifyPassword } = await import('@/domain/users/password.service.js');
+    vi.mocked(verifyPassword).mockResolvedValue(true);
 
     const result = await loginService.login(username, password);
 
@@ -95,9 +103,9 @@ describe('LoginService', () => {
 
     vi.mocked(mockUserRepository.findByUsername).mockResolvedValue(existingUser);
 
-    // Mock bcrypt to return false for password verification
-    const bcrypt = await import('bcrypt');
-    vi.spyOn(bcrypt, 'compare').mockResolvedValue(false as never);
+    // Mock verifyPassword to return false
+    const { verifyPassword } = await import('@/domain/users/password.service.js');
+    vi.mocked(verifyPassword).mockResolvedValue(false);
 
     await expect(loginService.login(username, password)).rejects.toThrow(InvalidCredentialsError);
     expect(mockUserRepository.create).not.toHaveBeenCalled();

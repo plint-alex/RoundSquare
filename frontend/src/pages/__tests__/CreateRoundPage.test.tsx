@@ -2,7 +2,7 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { CreateRoundPage } from '../CreateRoundPage'
+import { CreateRoundPage } from '@/pages/CreateRoundPage'
 import { useAuthStore } from '@/store/authStore'
 import { useCreateRound } from '@/hooks/useCreateRound'
 import * as roundsApi from '@/api/rounds'
@@ -81,7 +81,8 @@ describe('CreateRoundPage', () => {
   it('renders page title and form', () => {
     render(<CreateRoundPage />, { wrapper: createWrapper() })
 
-    expect(screen.getByText(/Create Round/i)).toBeInTheDocument()
+    // Check for title in header
+    expect(screen.getByRole('heading', { name: /Create Round/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/Use default durations/i)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Create Round/i })).toBeInTheDocument()
   })
