@@ -1,0 +1,79 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SURVIVOR
+  NIKITA
+  ADMIN
+}
+
+enum RoundStatus {
+  COOLDOWN
+  ACTIVE
+  COMPLETED
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  username     String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  createdRounds        Round[]              @relation("RoundCreator")
+  roundParticipants    RoundParticipant[]
+
+  @@map("users")
+}
+
+model Round {
+  id             String       @id @default(uuid()) @db.Uuid
+  status         RoundStatus
+  cooldownStartAt DateTime    @map("cooldown_start_at") @db.Timestamptz(6)
+  startAt        DateTime     @map("start_at") @db.Timestamptz(6)
+  endAt          DateTime     @map("end_at") @db.Timestamptz(6)
+  totalPoints    Int          @default(0) @map("total_points")
+  createdById    String       @map("created_by_id") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  createdBy      User         @relation("RoundCreator", fields: [createdById], references: [id], onDelete: NoAction)
+  participants   RoundParticipant[]
+
+  @@index([status])
+  @@index([startAt])
+  @@index([endAt])
+  @@map("rounds")
+}
+
+model RoundParticipant {
+  id           String    @id @default(uuid()) @db.Uuid
+  roundId      String    @map("round_id") @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  tapCount     Int       @default(0) @map("tap_count")
+  score        Int       @default(0)
+  lastTappedAt DateTime? @map("last_tapped_at") @db.Timestamptz(6)
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  round Round @relation(fields: [roundId], references: [id], onDelete: NoAction)
+  user  User  @relation(fields: [userId], references: [id], onDelete: NoAction)
+
+  @@unique([roundId, userId])
+  @@index([roundId])
+  @@index([userId])
+  @@index([score])
+  @@map("round_participants")
+}
+
+
